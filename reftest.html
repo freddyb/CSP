@@ -1,0 +1,91 @@
+<!doctype html>
+<title>Reftest harness</title>
+<style>
+iframe { width: 95%; height: 20em; }
+#test { border-color: blue; }
+#ref { border-color: green; }
+</style>
+<h1>Reftests</h1>
+<script>
+"use strict";
+function report(aResult, aMessage) {
+  pass &= aResult
+  var res = { status: +!aResult,
+              nodes: aResult ? [] : [document.createTextNode(aMessage)] }
+  results.push(res)
+  parent.result_callback(res)
+}
+function nextTest() {
+  if (!tests.length) {
+    parent.completion_callback(results, { status: +!pass })
+    return;
+  }
+  var test = tests.shift()
+  msgs.textContent = "These pages should " +
+                     (test[0] === "==" ? "match" : "not match") +
+                     "."
+  iframetest.src = path + test[1]
+  iframeref.src = path + test[2]
+}
+var pass = true
+var results = []
+var t = JSON.parse(decodeURIComponent(location.search.substring(1))), path = t[0], tests = t[1]
+var msgs = document.body.appendChild(document.createElement("p"))
+var p = document.body.appendChild(document.createElement("p"));
+p.textContent = "Look at the "
+var tButton = document.createElement("button")
+tButton.textContent = "Test"
+tButton.disabled = true
+tButton.onclick = function() {
+  tButton.disabled = true
+  rButton.disabled = false
+  iframetest.style.display = "inline"
+  iframeref.style.display = "none"
+}
+p.appendChild(tButton);
+p.appendChild(document.createTextNode(" "));
+var rButton = document.createElement("button")
+rButton.textContent = "Reference"
+rButton.onclick = function() {
+  rButton.disabled = true
+  tButton.disabled = false
+  iframetest.style.display = "none"
+  iframeref.style.display = "inline"
+}
+p.appendChild(rButton);
+
+var iframetest = document.body.appendChild(document.createElement("p"))
+                              .appendChild(document.createElement("iframe"))
+iframetest.id = "test"
+iframetest.style.display = "inline"
+var iframeref = document.body.lastChild
+                             .appendChild(document.createElement("iframe"))
+iframeref.id = "ref"
+iframeref.style.display = "none"
+
+p = document.body.appendChild(document.createElement("p"));
+p.textContent = "This test has: "
+var button = document.createElement("button")
+button.textContent = "Passed"
+button.onclick = function() {
+  report(true, "Tester clicked \"Pass\"");
+  nextTest()
+}
+p.appendChild(button);
+p.appendChild(document.createTextNode(" "));
+button = document.createElement("button")
+button.textContent = "Failed"
+button.onclick = function() {
+  report(false, "Tester clicked \"Fail\"");
+  nextTest()
+}
+p.appendChild(button);
+p.appendChild(document.createTextNode(" "));
+button = document.createElement("button")
+button.textContent = "Skip"
+button.onclick = function() {
+  nextTest()
+}
+p.appendChild(button);
+nextTest()
+</script>

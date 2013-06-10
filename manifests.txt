@@ -1,0 +1,10 @@
+This code relies on the existence of MANIFEST files to list the tests within
+a directory.  These files consist of LF-separated lines, each of which falls
+in one of categories:
+
+* Directory: "dir foo"
+* Support files: "support foo.html"
+* Reftests: "foo.html == foo-ref.html == foo-ref2.html != foo-notref.html"
+* Automated tests (testharness.js): "foo.html"
+* Manual tests: "manual foo.html"
+* HTML parser data files: "parser foo.dat"
