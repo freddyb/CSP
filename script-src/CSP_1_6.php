@@ -5,8 +5,8 @@
 * reports.  For the same reason, we set the report-uri as a distinct variable and 
 * combine it to form the full CSP header.
 *****/
-$policy_string = "script-src 'self' www.w3c-test.org";
-$title = "script from www2.w3c-test.org should not run with policy \"$policy_string\".";
+$policy_string = "script-src 'self' www." . $_SERVER['HTTP_HOST'];
+$title = "script from www2." . $_SERVER['HTTP_HOST'] ." should not run with policy \"$policy_string\".";
 
 /*****
 * The support script report.php will echo the contents of the CSP report
@@ -53,7 +53,7 @@ if($_GET['prefixed'] == 'true') {
 
 	<div id="div1"></div>
 
-	<script src="../support/loadRetargeted.php?attachTo=div1&type=script&relPath=support%2Ffail.php&hostname=www2.w3c-test.org"></script>
+	<script src="../support/loadRetargeted.php?attachTo=div1&type=script&relPath=support%2Ffail.php&hostname=www2.<?php echo $_SERVER['HTTP_HOST'] ?>"></script>
 
         <!-- This iframe will execute a test on the report contents.  It will pull a field out of
         the report, specified by reportField, and compare it's value to to reportValue.  It will

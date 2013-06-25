@@ -12,8 +12,8 @@ header("Content-Type: text/html");
 <!DOCTYPE html>
 <html>
 	<head>
-		<script src="http://www.w3c-test.org/resources/testharness.js"></script>
-		<script src="http://www.w3c-test.org/resources/testharnessreport.js"></script>
+		<script src="http://www.<?php echo $_SERVER['HTTP_HOST'] ?>/resources/testharness.js"></script>
+		<script src="http://www.<?php echo $_SERVER['HTTP_HOST'] ?>/resources/testharnessreport.js"></script>
 		<script src="verifyNoReportJs.php?reportID=<?php echo urlencode($_GET['reportID']) ?>&reportField=<?php echo urlencode($_GET['reportField']) ?>&reportValue=<?php echo $_GET['reportValue'] ?>"></script>
 	</head>
 	<body>

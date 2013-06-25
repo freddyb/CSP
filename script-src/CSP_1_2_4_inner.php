@@ -8,7 +8,7 @@ header("Content-Type: application/xml");
 * reports.  For the same reason, we set the report-uri as a distinct variable and 
 * combine it to form the full CSP header.
 *****/
-$policy_string = "script-src http://www2.w3c-test.org";
+$policy_string = "script-src http://www2." . $_SERVER['HTTP_HOST'];
 $title = "XSLT should not run with policy \"$policy_string\".";
 
 /*****
@@ -43,8 +43,8 @@ EOXMLD;
 		<title><?php echo $title ?></title>
 		<!--meta description='<?php echo $title ?>' /-->
 		<link rel="author" title="bhill@paypal-inc.com" />
-		<script src="http://www2.w3c-test.org/resources/testharness.js"></script>
-		<script src="http://www2.w3c-test.org/resources/testharnessreport.js"></script>
+		<script src="http://www2.<?php echo $_SERVER['HTTP_HOST'] ?>/resources/testharness.js"></script>
+		<script src="http://www2.<?php echo $_SERVER['HTTP_HOST'] ?>/resources/testharnessreport.js"></script>
 	</head>
 	<body>
 		<div id="log"></div>
@@ -52,7 +52,7 @@ EOXMLD;
 	<!-- Often when testing CSP you want something *not* to happen. Including this support script
 	(from an allowed source!) will give you and the test runner a guaranteed positive signal that
 	something is happening.  -->
-	<script src="http://www2.w3c-test.org/webappsec/tests/csp/submitted/WG/../support/fail.php"></script>
+	<script src="http://www2.<?php echo $_SERVER['HTTP_HOST'] ?>/webappsec/tests/csp/submitted/WG/../support/fail.php"></script>
 
 	</body>
 </html>

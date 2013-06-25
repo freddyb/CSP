@@ -5,7 +5,7 @@
 * reports.  For the same reason, we set the report-uri as a distinct variable and 
 * combine it to form the full CSP header.
 *****/
-$policy_string = "script-src http://www2.w3c-test.org";
+$policy_string = "script-src http://www2." . $_SERVER['HTTP_HOST'];
 $title = "XSLT should not run with policy \"$policy_string\".";
 $reportID=rand();
 
