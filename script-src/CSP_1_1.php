@@ -9,13 +9,13 @@ $policy_string = "default-src 'self'";
 $title = "Inline script should not run with policy \"$policy_string\".";
 
 /*****
-* The support script setReportAsCookie.php will echo the contents of the CSP report
+* The support script report.php will echo the contents of the CSP report
 * back as a cookie.  Note that you can't read this value immediately in this context
 * because the reporting is asynchronous and non-deterministic. As a rule of thumb,
 * you can test it in an iframe. 
 *****/
 $reportID=rand();
-$report_string = "report-uri ../support/setReportAsCookie.php?reportID=$reportID";
+$report_string = "report-uri ../support/report.php?reportID=$reportID";
 
 header("Content-Security-Policy: $policy_string; $report_string");
 /*****
