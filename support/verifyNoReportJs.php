@@ -8,53 +8,32 @@ header("Cache-Control: post-check=0, pre-check=0", false);
 header("Pragma: no-cache");
 header("Content-Type: text/javascript");
 
-$cleanQuotedCookieId = json_encode($_GET['reportID']);
 $cleanReportField = json_encode($_GET['reportField']);
 $cleanReportValue = json_encode($_GET['reportValue']);
 
+$temp_dir = sys_get_temp_dir();
+$report_file = $temp_dir . "/" . md5($_GET['reportID']) . "_cspReport.json";
+$file = fopen($report_file, 'r');
+$file_data = fread($file, filesize($report_file));
+fclose($file);
+unlink($report_file);
 ?>
-
-(function () 
-{ 
-
- function readCookie(name) {
-	var nameEQ = name + "=";
-	var ca = document.cookie.split(';');
-	for(var i=0;i < ca.length;i++) {
-		var c = ca[i];
-		while (c.charAt(0)==' ') c = c.substring(1,c.length);
-		if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length,c.length);
-	undefined}
-	return null;
-}
-
- function createCookie(name,value,days) {
-	if (days) {
-		var date = new Date();
-		date.setTime(date.getTime()+(days*24*60*60*1000));
-		var expires = "; expires="+date.toGMTString();
+(function ()
+{
+	//reading filename <?php echo $report_file ?>
+	
+	function reportdecode (str) {
+  	  if(str!= null){ str = str.replace(/"/g, '$'); }
+  	  return decodeURIComponent((str + '').replace(/\+/g, '%20'));
 	}
-	else var expires = "";
-	document.cookie = name+"="+value+expires+"; path=/";
-}
 
-  function eraseCookie(name) {
-	createCookie(name,"",-1);
-}
 
-function reportdecode (str) {
-
-  if(str!= null){ str = str.replace(/"/g, '$'); }
-
-  return decodeURIComponent((str + '').replace(/\+/g, '%20'));
-}
  test(function() {
+	var x = reportdecode("<?php echo $file_data ?>");
 
-	var x = reportdecode(readCookie(<?php echo $cleanQuotedCookieId ?>));
-	assert_equals(x, "null");
-	eraseCookie(<?php echo $cleanQuotedCookieId ?>);
+	assert_true(x === null || x == '', "No report generated.");
 
-}, "Verified no report sent.");
+}, "Verify no report generated.");
 
 })();
 
