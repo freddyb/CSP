@@ -1,4 +1,3 @@
-support support/clearCookies.html
 script-src/CSP_1_1.php
 script-src/CSP_1_2.php
 script-src/CSP_1_2_1.php
@@ -14,4 +13,3 @@ script-src/CSP_1_6.php
 script-src/CSP_1_10.php
 script-src/CSP_1_10_1.php
 manual script-src/CSP_1_7.php
-support support/clearCookies.html

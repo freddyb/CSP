@@ -35,9 +35,9 @@ html:not(.done) #results { width: 15em; height: 100%; float:left;
 
 section { display: block; border: thin solid black; padding: 0.5em 0; }
 section h1 { margin: 0; font-size: 1em; }
-html.done section h1 { text-align: center; }
+html.done section h1 { text-align: left; }
 section ol { padding: 0; margin: 0; list-style-position: inside; }
-html.done section ol { -moz-column-count: 3; -webkit-column-count: 3; column-count: 3; }
+/*html.done section ol { -moz-column-count: 3; -webkit-column-count: 3; column-count: 3; }*/
 section li { padding: 0.1em 0.5em; }
 section li.pass:nth-child(odd)  { background: #E5FFE5; }
 section li.pass:nth-child(even) { background: #DEF8DE; }

@@ -9,15 +9,17 @@ $policy_string = "default-src 'self'";
 $title = "data: as script src should not run with policy \"$policy_string\".";
 
 /*****
-* The support script report.php will echo the contents of the CSP report
-* back as a cookie.  Note that you can't read this value immediately in this context
-* because the reporting is asynchronous and non-deterministic. As a rule of thumb,
-* you can test it in an iframe. 
-*****/
+* The support script report.php will write the report to a temporary file
+* It can be tested asynchronously with ../support/checkReport.js*****/
 $reportID=rand();
 $report_string = "report-uri ../support/report.php?reportID=$reportID";
 
 header("Content-Security-Policy: $policy_string; $report_string");
+header("Expires: Mon, 26 Jul 1997 05:00:00 GMT");
+header("Last-Modified: " . gmdate("D, d M Y H:i:s") . " GMT");
+header("Cache-Control: no-store, no-cache, must-revalidate");
+header("Cache-Control: post-check=0, pre-check=0", false);
+header("Pragma: no-cache");
 /*****
 * Run tests with prefixed headers if requested.
 * Note this will not really work for Mozilla, as they use
@@ -52,13 +54,10 @@ if($_GET['prefixed'] == 'true') {
 	<!-- This is our test case, but we don't expect it to actually execute if CSP is working. -->
 	<script src="data:text/javascript;charset=utf-8;base64,KGZ1bmN0aW9uICgpDQp7DQoJdGVzdChmdW5jdGlvbigpIHthc3NlcnRfdHJ1ZShmYWxzZSl9LCAiU2NyaXB0IHNob3VsZCBub3QgZXhlY3V0ZSBmcm9tIGRhdGE6IHVyaSIpOw0KfSkoKQ=="></script>
 
-        <!-- This iframe will execute a test on the report contents.  It will pull a field out of
-        the report, specified by reportField, and compare it's value to to reportValue.  It will
-	also delete the report cookie to prevent the overall cookie header from becoming too long. -->
-	<iframe width="100%" height="300" 
-	  src="../support/checkReportFieldHtml.php?reportID=<?php echo $reportID ?>&reportField=violated-directive&reportValue=<?php echo urlencode($policy_string) ?>"
+       <!-- checkReportJs.php allows asynchronous testing of the generated reports. -->
+	<script async defer src="../support/checkReportJs.php?reportID=<?php echo $reportID ?>&reportField=violated-directive&reportValue=<?php echo urlencode($policy_string) ?>"
 	>
-	</iframe>
+	</script>
 
 	</body>
 </html>

@@ -7,7 +7,7 @@ header("Last-Modified: " . gmdate("D, d M Y H:i:s") . " GMT");
 header("Cache-Control: no-store, no-cache, must-revalidate");
 header("Cache-Control: post-check=0, pre-check=0", false);
 header("Pragma: no-cache");
-header("Content-Type: text/plain");
+header("Content-Type: text/html");
 
 //header("Set-Cookie: " . $_GET['reportID'] . "=" . urlencode(file_get_contents('php://input')) . "; Path=/;");
 
@@ -22,9 +22,12 @@ else {
   echo('No reportID set!');
 }
 ?>
-
+<html>
+<body>
 temp_dir is <?php echo $temp_dir ?>
 
 <?php echo md5($_GET['reportID']) ?>
 
 wrote to file <?php echo $report_file ?>
+</body>
+</html>
