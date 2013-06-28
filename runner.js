@@ -1,7 +1,7 @@
 "use strict";
 var runner;
 
-function Runner(aPath, options) {
+function Runner(aPath) {
   this.mStartTime = (new Date()).getTime();
   this.mPath = aPath;
   this.mTimeouts = 0;
@@ -20,8 +20,9 @@ function Runner(aPath, options) {
   this.mTests = [];
   this.mTestCount = -1;
   this.mSkipManual = false;
-  this.testOptions = options;
+  this.debugStream = "debugStream";
 };
+
 Runner.prototype = {
   "sTimeout": 10000, //ms
 
@@ -30,6 +31,7 @@ Runner.prototype = {
   "sSupportsMeter": "value" in document.createElement("meter"),
 
   "currentTest": function Runner_currentTest() {
+    //this.debugStream += "\ncurrentTest : " + this.mTestCount;
     return this.mTests[this.mTestCount];
   },
 
@@ -85,27 +87,33 @@ Runner.prototype = {
 
       var button = document.createElement("button")
       button.textContent = "Passed"
-      button.onclick = function() {
-        report(true, "Tester clicked \"Pass\"");
-        runner.currentTest().passes = 1;
+      button.onclick = (function() {
+        this.pass("Tester clicked \"Pass\"");
+        runner.currentTest().results.push({
+          name: "Reftest",
+          result: true
+        });
         runner.finishTest();
-      }
+      }).bind(this);
       p.appendChild(button);
       p.appendChild(document.createTextNode(" "));
       button = document.createElement("button")
       button.textContent = "Failed"
-      button.onclick = function() {
-        report(false, "Tester clicked \"Fail\"");
-        runner.currentTest().fails = 1;
+      button.onclick = (function() {
+        this.fail("Tester clicked \"Fail\"");
+        runner.currentTest().results.push({
+          name: "Reftest",
+          result: false
+        });
         runner.finishTest();
-      }
+      }).bind(this);
       p.appendChild(button);
       p.appendChild(document.createTextNode(" "));
       button = document.createElement("button")
       button.textContent = "Skip"
-      button.onclick = function() {
-        runner.finishTest();
-      }
+      button.onclick = (function() {
+        this.finishTest();
+      }).bind(this);
       p.appendChild(button);
     }
 
@@ -138,6 +146,7 @@ Runner.prototype = {
     }
 
     if (!this.mToBeProcessed) {
+      this.debugStream += "\n about to call runNextTest() in process";
       this.runNextTest()
     }
   },
@@ -145,9 +154,12 @@ Runner.prototype = {
   "parseManifest": function Runner_parseManifest(aLines, aPath) {
     var dirs = [];
     for (var i = 0, il = aLines.length; i < il; ++i) {
+
       if (!aLines[i]) {
         continue;
       }
+
+      this.debugStream += "\nRead line " + aLines[i] + " from MANIFEST.";
 
       var chunks = aLines[i].split(" ");
 
@@ -164,7 +176,7 @@ Runner.prototype = {
 
       case "manual":
         if (chunks[1]) {
-          this.mTests.push({ url: aPath + chunks[1] + this.testOptions, passes: 0, fails: 0, type: "manual" });
+          this.mTests.push({ url: aPath + chunks[1], results: [], type: "manual" });
         }
         break;
 
@@ -176,14 +188,15 @@ Runner.prototype = {
         for (var j = 2, jl = chunks.length; j < jl; j += 2) {
           reftests.push([chunks[j], aPath + chunks[1], aPath + chunks[j + 1]]);
         }
-        this.mTests.push({ type: "reftest", url: aPath + chunks[1] + this.testOptions, passes: 0, fails: 0, tests: reftests })
+        this.mTests.push({ type: "reftest", url: aPath + chunks[1], results: [], tests: reftests })
         break;
 
       default:
         if (chunks.length > 1) {
           break;
         }
-        this.mTests.push({ url: aPath + chunks[0] + this.testOptions, passes: 0, fails: 0, type: "automated" });
+        this.mTests.push({ url: aPath + chunks[0], results: [], type: "automated" });
+	this.debugStream += "\nPushed automated test " + chunks[0] + " to test list.";
       }
     }
     return dirs;
@@ -200,6 +213,11 @@ Runner.prototype = {
     this.mOl.appendChild(li);
   },
 
+  "pass": function Runner_pass(aMsg) {
+    ++this.mPasses;
+    this._report(true, [document.createTextNode(aMsg)]);
+  },
+
   "fail": function Runner_fail(aMsg) {
     ++this.mFails;
     this._report(false, [document.createTextNode(aMsg)]);
@@ -209,6 +227,7 @@ Runner.prototype = {
     this.fail("Timed out.");
     ++this.mTimeouts;
     clearTimeout(this.currentTest().timeout);
+    this.debugStream += "about to call runNextTest() in timedOut";
     this.runNextTest();
   },
 
@@ -296,27 +315,37 @@ Runner.prototype = {
 
     switch (this.currentTest().type) {
     case "automated":
+      this.debugStream += "\n Entering automated case of runNextTest: " + this.currentTest().url;
+      this.debugStream += "\n Current this.mIframe.src is: " + this.mIframe.src;
+
+
       if (!this.mSkipManual) {
         this.hideManualUI()
       }
-      this.currentTest().timeout =
-        setTimeout(function() { runner.timedOut() }, this.sTimeout);
+      this.currentTest().timeout = setTimeout(function() { runner.timedOut() }, this.sTimeout);
+
+      // this is broken because we advance before the frame has fully loaded
+      // need to hook onload() of the iframe and wait for that...
+      //this.mIframe.src = this.mPath + this.currentTest().url;
+      var loaded = false;
+      this.mIframe.onload = function(){ loaded = true; };
       this.mIframe.src = this.mPath + this.currentTest().url;
+      this.debugStream += "\n Set this.mIframe.src to : " + this.mIframe.src; 
       break;
 
     case "reftest":
       if (!this.mSkipManual) {
         this.hideManualUI()
+        this.mIframe.src = "reftest.html?" +
+          JSON.stringify([this.mPath, this.currentTest().tests]);
+      } else {
+        this.finishTest();
       }
-      this.mIframe.src = "reftest.html?" +
-        JSON.stringify([this.mPath, this.currentTest().tests]);
       break;
 
     case "manual":
       if (!this.mSkipManual) {
         this.showManualUI()
-        this.currentTest().timeout =
-          setTimeout(function() { runner.timedOut() }, this.sTimeout);
         this.mIframe.src = this.mPath + this.currentTest().url;
       } else {
         this.finishTest();
@@ -328,11 +357,18 @@ Runner.prototype = {
     }
   },
 
+  "countResults": function Report_countResults(aTest, aResult) {
+    return aTest.results.filter(function(result) {
+      return result.result == aResult;
+    }).length;
+  },
+
   "finishTest": function Report_finishTest() {
-    this.mPasses += this.currentTest().passes;
-    this.mFails += this.currentTest().fails;
+    this.mPasses += this.countResults(this.currentTest(), true);
+    this.mFails += this.countResults(this.currentTest(), false);
     this.updateResults();
     clearTimeout(this.currentTest().timeout);
+    this.debugStream += " about to call runNextTest() in finishTest";
     this.runNextTest();
   },
 
@@ -366,7 +402,13 @@ Runner.prototype = {
         .appendChild(document.createElementNS(null, "tests"));
 
     for (var i = 0, il = this.mTests.length; i < il; ++i) {
-      if (this.mTests[i].passes || this.mTests[i].fails) {
+      this.debugStream += "\nIn mTests[" + i + "] : ";
+      this.debugStream += this.mTests[i].url;
+      var passes = this.countResults(this.mTests[i], true);
+      this.debugStream += "\nPasses: " + passes;
+      var fails = this.countResults(this.mTests[i], true);
+      this.debugStream += "\nFails: " + fails;
+      if (passes || fails) {
         tests.appendChild(document.createTextNode("\n  "));
         tests
           .appendChild(document.createElementNS(null, "test"))
@@ -379,7 +421,7 @@ Runner.prototype = {
           .parentNode
             .appendChild(document.createElementNS(null, "result"))
               .appendChild(document.createTextNode(
-                !this.mTests[i].fails ? "Pass" : "Fail"))
+                !fails ? "Pass" : "Fail"))
           .parentNode.parentNode
             .appendChild(document.createTextNode("\n  "));
       }
@@ -391,6 +433,22 @@ Runner.prototype = {
       .parentNode.parentNode
         .appendChild(document.createTextNode("\n"));
     return container.innerHTML;
+  },
+
+  "getJSONReport": function Runner_getJSONReport() {
+    var data = {
+      "ua": navigator.userAgent,
+      "date": Date(),
+      "tests": this.mTests.filter(function(aTest) {
+        return aTest.results.length;
+      }).map(function(aTest) {
+        return {
+          "url": aTest.url,
+          "results": aTest.results
+        };
+      })
+    };
+    return JSON.stringify(data, null, "  ");
   },
 
   "finish": function Runner_finish() {
@@ -420,11 +478,16 @@ Runner.prototype = {
         document.close();
       }
     };
-    document.body.appendChild(document.createElement("p"))
-                 .appendChild(document.createElement("textarea"))
-                 .appendChild(document.createTextNode(this.getXMLReport()));
+    ["XML", "JSON"].forEach(function(aFormat) {
+      var result = this["get" + aFormat + "Report"]();
+      document.body.appendChild(document.createElement("p"))
+                   .appendChild(document.createElement("textarea"))
+                   .appendChild(document.createTextNode(result));
+    }, this);
     document.title = "Done \u2013 " + document.title;
     document.documentElement.className = "done";
+
+    //document.body.appendChild(document.createElement("pre")).appendChild(document.createTextNode(this.debugStream));
   }
 };
 
@@ -466,17 +529,10 @@ function setup() {
 }
 
 function startRunning() {
-  runner = new Runner(this.value, this.name);
+  runner = new Runner(this.value);
   runner.start();
 }
 
-
-function report(aPass, aMessage) {
-  var nodes = [];
-  if (!aPass)
-    nodes.push(document.createTextNode(aMessage));
-  runner._report(aPass, nodes);
-}
 
 function result_callback(aTest) {
   if (runner.currentTest().type === "manual" && aTest.status === aTest.TIMEOUT) {
@@ -494,32 +550,26 @@ function result_callback(aTest) {
         nodes.push(rendered);
       }
     }
-  } else if (aTest.nodes) {
-    nodes = aTest.nodes;
   }
-  runner._report(!aTest.status, nodes);
-  !aTest.status ? runner.currentTest().passes++ : runner.currentTest().fails++;
-}
-
-function separate() {
-}
-
-
-function finishTest() {
-  runner.currentTest().passes = runner.mIframe.contentWindow.Test.results.passes;
-  runner.currentTest().fails = runner.mIframe.contentWindow.Test.results.fails;
-  runner.finishTest();
+  var passed = (aTest.status == aTest.PASS);
+  runner._report(passed, nodes);
+  runner.currentTest().results.push({
+    name: aTest.name,
+    result: passed
+  });
 }
 
 function completion_callback(aTests, aStatus) {
-  if (runner.currentTest().type === "manual") {
-    for (var i = 0, il = aTests.length; i < il; ++i) {
-      var test = aTests[i];
-      if (test.status == test.TIMEOUT) {
-        return;
-      }
-    }
+  if (runner.currentTest().type === "manual" &&
+    aTests.some(function(aTest) { return aTest.status == aTest.TIMEOUT; })) {
+    return;
   }
+
+// if the test has sub-frames that use testharness.js
+// extra callbacks will bubble up here and advance things
+// prematurely, causing subsequent tests to be skipped...
+// but only in Firefox.
+
   runner.finishTest();
 }
 

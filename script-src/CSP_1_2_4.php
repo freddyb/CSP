@@ -34,13 +34,10 @@ $reportID=rand();
 	  src="CSP_1_2_4_inner.php?reportID=<?php echo $reportID?>&prefixed=<?php echo $_GET['prefixed']?>">
 	</iframe>
 
-        <!-- This iframe will execute a test on the report contents.  It will pull a field out of
-        the report, specified by reportField, and compare it's value to to reportValue.  It will
-	also delete the report cookie to prevent the overall cookie header from becoming too long. -->
-	<iframe width="100%" height="300" 
-	  src="../support/checkReportFieldHtml.php?reportID=<?php echo $reportID ?>&reportField=violated-directive&reportValue=<?php echo urlencode($policy_string) ?>"
+       <!-- checkReportJs.php allows asynchronous testing of the generated reports. -->
+	<script async defer src="../support/checkReportJs.php?reportID=<?php echo $reportID ?>&reportField=violated-directive&reportValue=<?php echo urlencode($policy_string) ?>"
 	>
-	</iframe>
+	</script>
 
 	</body>
 </html>
