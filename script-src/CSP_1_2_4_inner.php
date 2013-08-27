@@ -54,7 +54,7 @@ EOXMLD;
 	<!-- Often when testing CSP you want something *not* to happen. Including this support script
 	(from an allowed source!) will give you and the test runner a guaranteed positive signal that
 	something is happening.  -->
-	<script src="http://www2.<?php echo $_SERVER['HTTP_HOST'] ?>/webappsec/tests/csp/submitted/WG/../support/fail.php"></script>
+	<script src="../support/fail.php"></script>
 
 	</body>
 </html>
