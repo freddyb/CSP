@@ -5,7 +5,7 @@
 * reports.  For t same reason, we set the report-uri as a distinct variable and 
 * combine it to form the full CSP header.
 *****/
-$policy_string = "script-src 'self' www.". $_SERVER['HTTP_HOST'];
+$policy_string = "script-src blob: www.". $_SERVER['HTTP_HOST'];
 $title = "Eval created via blob should not run with policy:  \"$policy_string\".";
 
 /*****

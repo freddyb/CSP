@@ -15,4 +15,6 @@ script-src/CSP_1_10.php
 script-src/CSP_1_10_1.php
 script-src/CSP_1_11.php
 script-src/CSP_1_11_1.php
+script-src/CSP_1_11_2.php
+script-src/CSP_1_11_3.php
 manual script-src/CSP_1_7.php
