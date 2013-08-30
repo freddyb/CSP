@@ -2,14 +2,15 @@
 /*****
 * First, some generic setup.  It is good to define the policy string as a variable once
 * as we are likely to need to reference it later in describing the policy and checking
-* reports.  For the same reason, we set the report-uri as a distinct variable and 
+* reports.  For t same reason, we set the report-uri as a distinct variable and 
 * combine it to form the full CSP header.
 *****/
 $policy_string = "default-src *";
-//$policy_string = "default-src * 'unsafe-inline'";
+$title = "Worker created from inline text should not run with policy \"$policy_string\".";
 
-$title = "Inline script attached by DOM manipulation should not run with policy \"$policy_string\".";
-
+/*****
+* The support script report.php will write the report to a temporary file
+* It can be tested asynchronously with ../support/checkReport.js*****/
 $reportID=rand();
 $report_string = "report-uri ../support/report.php?reportID=$reportID";
 
@@ -41,7 +42,7 @@ if($_GET['prefixed'] == 'true') {
 		<script src="/resources/testharness.js"></script>
 		<script src="/resources/testharnessreport.js"></script>
 	</head>
-	<body onLoad="test(function() {assert_false(true, 'Unsafe inline onLoad() event handler ran.')});">
+	<body>
 		<h1><?php echo $title ?></h1>
 		<div id=log></div>
 
@@ -50,16 +51,17 @@ if($_GET['prefixed'] == 'true') {
 	something is happening.  -->
 	<script src="../support/success.php"></script>
 
-	<!-- This is our test case, but we don't expect it to actually execute if CSP is working. -->
-	<div id=attachHere></div>
+	<script id="inlineWorker" type="app/worker">
 
-	<script id=emptyScript></script>
+		addEventListener('message', function() {
+			postMessage('fail');
+		}, false);
 
-	<div id=emptyDiv></div>
+	</script>
 
-	<script src="../support/addInlineTestsWithDOMManipulation.php"></script>
+        <script src="../support/buildInlineWorker.php"></script>
 
-       <!-- checkReportJs.php allows asynchronous testing of the generated reports.  -->
+       <!-- checkReportJs.php allows asynchronous testing of the generated reports. -->
 	<script async defer src="../support/checkReportJs.php?reportID=<?php echo $reportID ?>&reportField=violated-directive&reportValue=<?php echo urlencode($policy_string) ?>"
 	>
 	</script>
