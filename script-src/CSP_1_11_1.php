@@ -5,8 +5,8 @@
 * reports.  For t same reason, we set the report-uri as a distinct variable and 
 * combine it to form the full CSP header.
 *****/
-$policy_string = "default-src *";
-$title = "Script created from inline text should not run with policy \"$policy_string\".";
+$policy_string = "script-src www.". $_SERVER['HTTP_HOST'];
+$title = "Script created from blob should not run with policy:  \"$policy_string\".";
 
 /*****
 * The support script report.php will write the report to a temporary file
@@ -39,8 +39,8 @@ if($_GET['prefixed'] == 'true') {
 		<meta http-equiv="content-type" content="text/html; charset=UTF-8" />
 		<meta description="<?php echo $title ?>" />
 		<link rel="author" title="bhill@paypal-inc.com" />
-		<script src="/resources/testharness.js"></script>
-		<script src="/resources/testharnessreport.js"></script>
+		<script src="<?php echo $_GET['protocol'] . '//www.' . $_SERVER['HTTP_HOST'] ?>/resources/testharness.js"></script>
+		<script src="<?php echo $_GET['protocol'] . '//www.' . $_SERVER['HTTP_HOST'] ?>/resources/testharnessreport.js"></script>
 	</head>
 	<body>
 		<h1><?php echo $title ?></h1>
@@ -49,7 +49,7 @@ if($_GET['prefixed'] == 'true') {
 	<!-- Often when testing CSP you want something *not* to happen. Including this support script
 	(from an allowed source!) will give you and the test runner a guaranteed positive signal that
 	something is happening.  -->
-	<script src="../support/success.php"></script>
+	<script src="<?php echo $_GET['protocol'] . '//www.' . $_SERVER['HTTP_HOST'] . substr($_SERVER['SCRIPT_NAME'], 0, strpos($_SERVER['SCRIPT_NAME'], basename($_SERVER['SCRIPT_NAME']))) ?>../support/success.php"></script>
 
 	<script id="inlineEvil" type="evil">
 
@@ -59,10 +59,10 @@ if($_GET['prefixed'] == 'true') {
 
         <div id="attachHere"></div>
 
-        <script src="../support/buildScriptFromInline.php"></script>
+        <script src="<?php echo $_GET['protocol'] . '//www.' . $_SERVER['HTTP_HOST'] . substr($_SERVER['SCRIPT_NAME'], 0, strpos($_SERVER['SCRIPT_NAME'], basename($_SERVER['SCRIPT_NAME']))) ?>../support/buildScriptFromInline.php"></script>
 
        <!-- checkReportJs.php allows asynchronous testing of the generated reports. -->
-	<script async defer src="../support/checkReportJs.php?reportID=<?php echo $reportID ?>&reportField=violated-directive&reportValue=<?php echo urlencode($policy_string) ?>"
+	<script async defer src="<?php echo $_GET['protocol'] . '//www.' . $_SERVER['HTTP_HOST'] . substr($_SERVER['SCRIPT_NAME'], 0, strpos($_SERVER['SCRIPT_NAME'], basename($_SERVER['SCRIPT_NAME']))) ?>../support/checkReportJs.php?reportID=<?php echo $reportID ?>&reportField=violated-directive&reportValue=<?php echo urlencode($policy_string) ?>"
 	>
 	</script>
 
