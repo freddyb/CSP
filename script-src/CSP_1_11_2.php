@@ -6,7 +6,7 @@
 * combine it to form the full CSP header.
 *****/
 $policy_string = "script-src 'self' www.". $_SERVER['HTTP_HOST'];
-$title = "Script created from blob should not run with policy:  \"$policy_string\".";
+$title = "Eval created via blob should not run with policy:  \"$policy_string\".";
 
 /*****
 * The support script report.php will write the report to a temporary file
