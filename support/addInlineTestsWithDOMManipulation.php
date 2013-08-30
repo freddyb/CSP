@@ -1,3 +1,6 @@
+<?php
+header("Content-type: text/javascript");
+?>
 (function () 
 { 
  var attachPoint = document.getElementById('attachHere');
